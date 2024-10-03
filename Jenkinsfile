@@ -4,47 +4,45 @@ pipeline {
     stages {
         stage('Clone repository') {
             steps {
-                // Clone your GitHub repository
                 git url: 'https://github.com/morinsola01/secure-flask-pipeline-terraform-ecs.git', branch: 'main'
             }
         }
         
         stage('Build') {
             steps {
-                // Example build step
                 echo 'Building...'
-                // Add your build tool commands here (e.g., for Python: `sh 'pip install -r requirements.txt'`)
+                sh 'pip install -r requirements.txt'
+            }
+        }
+
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarQubeScanner';
+                    withSonarQubeEnv('SonarQube') { 
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
             }
         }
         
-        stage('Static Analysis (SAST)') {
+        stage('OWASP ZAP DAST Scan') {
             steps {
-                // SonarQube analysis steps (replace with your actual SonarQube setup)
-                echo 'Running SAST with SonarQube...'
-                // Example: sh 'sonar-scanner'
-            }
-        }
-        
-        stage('Security Test (DAST)') {
-            steps {
-                // OWASP ZAP scan (replace with your actual OWASP ZAP setup)
-                echo 'Running DAST with OWASP ZAP...'
-                // Example: sh 'zap-cli scan http://your-app-url'
+                zapStart zapHome: '/path/to/zap'
+                zapAttack target: 'http://your-app-url'
+                zapReport reportFile: 'zap-report.html'
             }
         }
 
         stage('Deploy') {
             steps {
-                // Deploy your application
                 echo 'Deploying...'
-                // Add your deployment steps here
             }
         }
     }
     
     post {
         always {
-            // Archive test reports, clean workspace, etc.
             echo 'Cleaning up...'
             cleanWs()
         }
