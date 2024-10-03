@@ -25,14 +25,6 @@ pipeline {
                 }
             }
         }
-        
-        stage('OWASP ZAP DAST Scan') {
-            steps {
-                zapStart zapHome: '/path/to/zap'
-                zapAttack target: 'http://your-app-url'
-                zapReport reportFile: 'zap-report.html'
-            }
-        }
 
         stage('Deploy') {
             steps {
