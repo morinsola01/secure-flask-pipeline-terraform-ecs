@@ -1,42 +1,34 @@
 pipeline {
     agent any
-    
+
     stages {
-        stage('Clone repository') {
+        stage('Clone Repository') {
             steps {
+                // Clone the repository
                 git url: 'https://github.com/morinsola01/secure-flask-pipeline-terraform-ecs.git', branch: 'main'
             }
         }
-        
-        stage('Build') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Building...'
-                sh 'pip install -r requirements.txt'
-            }
-        }
-
-        stage('SonarQube analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarQubeScanner';
-                    withSonarQubeEnv('SonarQube') { 
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
+                withSonarQubeEnv('Local SonarQube') {
+                    sh 'sonar-scanner'
                 }
             }
         }
-
-        stage('Deploy') {
+        stage('Test') {
             steps {
-                echo 'Deploying...'
+                // Run unit tests with pytest
+                sh 'pytest'
             }
         }
     }
-    
+
     post {
         always {
-            echo 'Cleaning up...'
-            cleanWs()
+            echo 'Pipeline completed.'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
